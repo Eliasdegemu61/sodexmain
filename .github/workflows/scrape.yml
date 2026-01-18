@@ -1,0 +1,25 @@
+name: Sodex Update
+on:
+  schedule:
+    - cron: '0 */12 * * *' # Every 12 hours
+  workflow_dispatch: # Allows manual "Run Now" button
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Important: allows GitHub to save the JSON file back
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - run: npm install
+      - run: node index.js
+      - name: Save Result
+        run: |
+          git config --global user.name "SodexBot"
+          git config --global user.email "bot@sodex.dev"
+          git add sodex_data.json
+          git commit -m "Auto-update: $(date)" || echo "No changes"
+          git push
