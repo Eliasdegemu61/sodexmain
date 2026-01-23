@@ -1,7 +1,7 @@
 name: Sodex Update
 on:
   schedule:
-    - cron: '0 */12 * * *' # Every 12 hours
+    - cron: '0 */4 * * *' # Every 12 hours
   workflow_dispatch: # Allows manual "Run Now" button
 
 jobs:
