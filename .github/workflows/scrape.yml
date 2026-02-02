@@ -2,17 +2,19 @@ name: Sodex Update
 on:
   schedule:
     - cron: '0 */6 * * *' # Every 6 hours
-  workflow_dispatch: # Allows you to run it manually anytime
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      TZ: 'Europe/Istanbul' # Ensures UTC+3 for your "Jan 2" style dates
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Fetches all history so rebase works better
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -27,9 +29,17 @@ jobs:
         run: |
           git config --global user.name "SodexBot"
           git config --global user.email "bot@sodex.dev"
-          git add sodex_data.json
-          # Pull the latest changes that happened during the long run
+          
+          # 1. Temporarily hide your new data so Git can pull cleanly
+          git stash
+          
+          # 2. Pull the latest changes from your manual Python bot runs
           git pull --rebase origin main
-          git commit -m "Auto-update: $(date)" || echo "No changes"
+          
+          # 3. Bring your new scraper data back
+          git stash pop || echo "No stashed changes"
+          
+          # 4. Now stage and commit
+          git add sodex_data.json
+          git commit -m "Auto-update: $(date)" || echo "No changes to commit"
           git push origin main
-
