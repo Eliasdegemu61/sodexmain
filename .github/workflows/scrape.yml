@@ -1,25 +1,35 @@
 name: Sodex Update
 on:
   schedule:
-    - cron: '0 */4 * * *' # Every 12 hours
-  workflow_dispatch: # Allows manual "Run Now" button
+    - cron: '0 */6 * * *' # Every 6 hours
+  workflow_dispatch: # Allows you to run it manually anytime
 
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # Important: allows GitHub to save the JSON file back
+      contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetches all history so rebase works better
+
       - uses: actions/setup-node@v4
         with:
           node-version: 18
+
       - run: npm install
-      - run: node index.js
+
+      - name: Run Scraper
+        run: node index.js
+
       - name: Save Result
         run: |
           git config --global user.name "SodexBot"
           git config --global user.email "bot@sodex.dev"
           git add sodex_data.json
+          # Pull the latest changes that happened during the long run
+          git pull --rebase origin main
           git commit -m "Auto-update: $(date)" || echo "No changes"
-          git push
+          git push origin main
+
